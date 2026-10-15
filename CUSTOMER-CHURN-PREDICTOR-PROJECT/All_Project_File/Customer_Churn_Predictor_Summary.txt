@@ -1,0 +1,104 @@
+CUSTOMER CHURN PREDICTOR — PROJECT SUMMARY
+=============================================
+File: Customer_Churn_predictor.ipynb
+Dataset: Customer_Churn_Simple_18Cols.csv
+
+OVERVIEW
+--------------------------------------
+This project predicts whether a customer is likely to churn (cancel/leave)
+based on their account details, usage behavior, and engagement history.
+The goal was to build a model that not only predicts churn accurately, but
+is also easy for non-technical business owners and employees to actually use.
+
+1. DATA LOADING & CLEANING
+--------------------------------------
+- Loaded the dataset and checked shape and null values
+- Verified data with df.head()
+
+2. CATEGORICAL FEATURE ENCODING
+--------------------------------------
+Manually mapped categorical columns to numeric codes:
+- Gender: Female=0, Male=1
+- Region: East=0, South=1, West=2, Central=3, North=4
+- ContractType: Monthly=0, Yearly=1, Two-Year=2
+- PaymentMethod: Debit Card=0, Credit Card=1, Net Banking=2, UPI=3, Cash=4
+
+3. EXPLORATORY DATA ANALYSIS (VISUALIZATIONS)
+--------------------------------------
+- Countplot of overall churn distribution (Stayed vs Churned)
+- Boxplot comparing "LastLoginDaysAgo" against churn status (inactivity vs churn)
+- Bar chart of churn rate by contract type
+- Pie chart showing overall churn distribution as percentages
+
+4. FEATURE SELECTION
+--------------------------------------
+- Dropped CustomerID and Churn (target) from features
+- Applied pd.get_dummies() to finalize the feature set
+- Remaining features include: Age, Gender, Region, TenureMonths, ContractType,
+  PaymentMethod, MonthlyCharges, TotalCharges, NumberOfServices,
+  SupportCallsMade, PaymentDelayDays, UsageHoursPerMonth, SatisfactionScore,
+  LastLoginDaysAgo, HasPromotionalDiscount, AutoRenewal
+
+5. TRAIN/TEST SPLIT & SCALING
+--------------------------------------
+- Split data 70/30 (train/test), random_state=42
+- Applied StandardScaler to features
+
+6. MODEL TRAINING
+--------------------------------------
+- Trained an XGBClassifier on the scaled training data
+- Evaluated train and test accuracy scores
+
+7. FEATURE IMPORTANCE ANALYSIS (MY ADDITION)
+--------------------------------------
+- Extracted model.feature_importances_ to identify which columns most
+  strongly drive churn predictions
+- Ranked all features from most to least important
+
+8. SIMPLIFIED "EASY TO USE" PREDICTION FUNCTION (MY ADDITION)
+--------------------------------------
+Built predict_churn_simple() to make predictions accessible for business
+owners and employees who aren't technical, rather than requiring all 16
+raw fields every time:
+
+- Automatically selects the top 6 most important features from the model
+- Always includes 4 specific business-relevant fields regardless of their
+  importance ranking: AutoRenewal, Age, Gender, HasPromotionalDiscount
+- Fills in every other (non-specified) column automatically using dataset
+  averages (mean for numeric columns, most common value/mode for categorical
+  columns), so the employee doesn't need to know every detail about a customer
+- Accepts plain-English inputs for categorical fields (e.g. Gender='Male',
+  ContractType='Monthly') instead of requiring pre-encoded numbers
+- Produces a clear, human-readable verdict:
+    ✅ SAFE: likely to stay (with risk %)
+    ⚠️ ALERT: likely to churn (with risk %)
+- Prints a "Key factors considered" list showing the values used for the
+  most influential + business-requested fields, so employees can see
+  *why* a prediction was made, not just the final answer
+
+9. CLASS DISTRIBUTION CHECK
+--------------------------------------
+- Checked the churn distribution and percentage of churners in the dataset,
+  useful for understanding class imbalance and interpreting model behavior
+
+10. MODEL PERSISTENCE
+--------------------------------------
+- Saved the trained model using joblib.dump() for future reuse/deployment
+  without needing to retrain
+
+SUMMARY OF MY CHANGES / ADDITIONAL WORK
+--------------------------------------
+- Added visualizations (churn rate by contract type bar chart, overall churn
+  pie chart) beyond the original EDA
+- Computed and reviewed feature importances to understand key churn drivers
+- Designed and implemented a simplified prediction function
+  (predict_churn_simple) specifically so non-technical staff can generate
+  churn predictions without needing to fill in all 16 columns
+- Customized the function to always surface 4 business-relevant fields
+  (AutoRenewal, Age, Gender, HasPromotionalDiscount) in the output, even
+  when they aren't part of the model's top important features, based on
+  what the business wanted visibility into
+- Added plain-English category handling (typed values like 'Male' or
+  'Monthly' instead of numeric codes) to make the function usable by
+  employees unfamiliar with the underlying encoding
+- Saved/exported the trained model with joblib for reuse
